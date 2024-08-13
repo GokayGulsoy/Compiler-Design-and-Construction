@@ -1,0 +1,15 @@
+digraph "CFG for 'is_prime' function" {
+	label="CFG for 'is_prime' function";
+
+	Node0x63d8ed09c170 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#cc403a70" fontname="Courier",label="{entrance:\l|  %cmp = icmp sle i32 %n, 1\l  br i1 %cmp, label %not_prime, label %for_body\l|{<s0>T|<s1>F}}"];
+	Node0x63d8ed09c170:s0 -> Node0x63d8ed09d980[tooltip="entrance -> not_prime\nProbability 50.00%" ];
+	Node0x63d8ed09c170:s1 -> Node0x63d8ed09da00[tooltip="entrance -> for_body\nProbability 50.00%" ];
+	Node0x63d8ed09da00 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870" fontname="Courier",label="{for_body:\l|  %i = phi i32 [ 2, %entrance ], [ %next_i, %loop_inc ]\l  %next_i = add i32 %i, 1\l  %remainder = srem i32 %n, %i\l  %is_divisible = icmp eq i32 %remainder, 0\l  br i1 %is_divisible, label %not_prime, label %loop_inc\l|{<s0>T|<s1>F}}"];
+	Node0x63d8ed09da00:s0 -> Node0x63d8ed09d980[tooltip="for_body -> not_prime\nProbability 3.12%" ];
+	Node0x63d8ed09da00:s1 -> Node0x63d8ed09e220[tooltip="for_body -> loop_inc\nProbability 96.88%" ];
+	Node0x63d8ed09e220 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870" fontname="Courier",label="{loop_inc:\l|  %is_prime = icmp ne i32 %next_i, %n\l  br i1 %is_prime, label %for_body, label %prime\l|{<s0>T|<s1>F}}"];
+	Node0x63d8ed09e220:s0 -> Node0x63d8ed09da00[tooltip="loop_inc -> for_body\nProbability 96.88%" ];
+	Node0x63d8ed09e220:s1 -> Node0x63d8ed09e930[tooltip="loop_inc -> prime\nProbability 3.12%" ];
+	Node0x63d8ed09d980 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#cc403a70" fontname="Courier",label="{not_prime:\l|  ret i32 0\l}"];
+	Node0x63d8ed09e930 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#d6524470" fontname="Courier",label="{prime:\l|  ret i32 1\l}"];
+}

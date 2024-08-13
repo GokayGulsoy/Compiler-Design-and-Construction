@@ -1,0 +1,19 @@
+digraph "CFG for 'is_prime' function" {
+	label="CFG for 'is_prime' function";
+
+	Node0x58aed9b14200 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#cc403a70" fontname="Courier",label="{entrance:\l|  %is_prime = icmp sle i32 %n, 1\l  br i1 %is_prime, label %not_prime, label %initialize\l|{<s0>T|<s1>F}}"];
+	Node0x58aed9b14200:s0 -> Node0x58aed9b15a40[tooltip="entrance -> not_prime\nProbability 50.00%" ];
+	Node0x58aed9b14200:s1 -> Node0x58aed9b15ac0[tooltip="entrance -> initialize\nProbability 50.00%" ];
+	Node0x58aed9b15ac0 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#d0473d70" fontname="Courier",label="{initialize:\l|  %i_addr = alloca i32, align 4\l  store i32 2, ptr %i_addr, align 4\l  br label %loop_cond\l}"];
+	Node0x58aed9b15ac0 -> Node0x58aed9b163b0[tooltip="initialize -> loop_cond\nProbability 100.00%" ];
+	Node0x58aed9b163b0 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870" fontname="Courier",label="{loop_cond:\l|  %i = load i32, ptr %i_addr, align 4\l  %is_loop_end = icmp sle i32 %i, %n\l  br i1 %is_loop_end, label %for_body, label %prime\l|{<s0>T|<s1>F}}"];
+	Node0x58aed9b163b0:s0 -> Node0x58aed9b16570[tooltip="loop_cond -> for_body\nProbability 96.88%" ];
+	Node0x58aed9b163b0:s1 -> Node0x58aed9b165f0[tooltip="loop_cond -> prime\nProbability 3.12%" ];
+	Node0x58aed9b16570 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870" fontname="Courier",label="{for_body:\l|  %remainder = srem i32 %n, %i\l  %is_divisible = icmp eq i32 %remainder, 0\l  br i1 %is_divisible, label %not_prime, label %loop_inc\l|{<s0>T|<s1>F}}"];
+	Node0x58aed9b16570:s0 -> Node0x58aed9b15a40[tooltip="for_body -> not_prime\nProbability 3.12%" ];
+	Node0x58aed9b16570:s1 -> Node0x58aed9b16db0[tooltip="for_body -> loop_inc\nProbability 96.88%" ];
+	Node0x58aed9b16db0 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870" fontname="Courier",label="{loop_inc:\l|  %i_new = add i32 %i, 1\l  store i32 %i_new, ptr %i_addr, align 4\l  br label %loop_cond\l}"];
+	Node0x58aed9b16db0 -> Node0x58aed9b163b0[tooltip="loop_inc -> loop_cond\nProbability 100.00%" ];
+	Node0x58aed9b15a40 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#cc403a70" fontname="Courier",label="{not_prime:\l|  ret i32 0\l}"];
+	Node0x58aed9b165f0 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#d6524470" fontname="Courier",label="{prime:\l|  ret i32 1\l}"];
+}
