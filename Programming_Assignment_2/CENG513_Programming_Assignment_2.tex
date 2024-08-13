@@ -1,0 +1,274 @@
+\documentclass[16pt]{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\floatstyle{plaintop}
+\usepackage{geometry}
+\usepackage[skip=10pt plus1pt,indent=50pt]{parskip}
+\usepackage{blindtext}
+\usepackage{fancyhdr}
+\usepackage[T1]{fontenc}
+\usepackage{biblatex}
+\usepackage{mathptmx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{cleveref}
+\usepackage{lastpage} % used to display we are located in which page 
+                      % out of all pages in report
+
+\topmargin 0.1in % giving a margin from the top of page
+\headsep 20pt    % giving seperation after the headers
+\addbibresource{references.bib}
+
+\renewcommand{\lstlistingname}{Code}
+\renewcommand{\lstlistlistingname}{List of Code}
+\lstdefinestyle{chstyle}{ % styling code listings for C language 
+backgroundcolor=\color{gray!12},
+basicstyle=\ttfamily\small,
+commentstyle=\color{green!60!black},
+keywordstyle=\color{magenta},
+stringstyle=\color{blue!50!red},
+showstringspaces=false,
+captionpos=b,
+numbers=left,
+numberstyle=\footnotesize\color{gray},
+numbersep=10pt,
+%stepnumber=2,
+tabsize=2,
+frame=L,
+framerule=1pt,
+rulecolor=\color{red},
+breaklines=true,
+inputpath=code
+}
+
+\title{\bf{ Izmir Institute of Technology \\ Computer Engineering Department \\ CENG513 Programming Assignment 2}}
+\author{Student Name: Gökay Gülsoy Student No: 270201072}
+\date{\today}
+\graphicspath{Images/}
+\definecolor{myGray}{RGB}{226, 222, 222}
+
+\begin{document}
+\pagecolor{myGray}
+\pagestyle{fancy}
+% setting the head rule width and footer rule width
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{1pt}
+\renewcommand{\headruleskip}{2mm}
+\renewcommand{\footruleskip}{2mm}
+
+\fancyhead{} % clear all header fields
+\fancyhead[L]{\bf CENG513 Compiler Design and Construction}
+\fancyfoot{} % clear all footer fields
+\fancyfoot[L]{\thepage\ of \pageref{LastPage}}
+\fancyfoot[C]{\bf Extending Kaleidoscope Language}
+\fancyfoot[R]{\bf Programming Assignment 2}
+
+\maketitle
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.45]{Images/iyte_logo.png}
+\end{figure}
+
+\newpage
+\lstlistoflistings
+\newpage
+
+
+\section{Adding New Tokens}
+In order to add support for recognizing and parsing repeat-until loop construct, I have modified the lexer\cite{1.Kaleidoscope-Kaleidoscope-Introduction-and-the-Lexer-LLVM19.0.0git-documentation} and parser\cite{2.Kaleidoscope-Implementing-a-Parser-and-AST-LLVM-19.0.0git-documentation} components of Kaleidoscope language. First modification I have done is on Token enum. I have introduced to new tokens which are \textbf{repeat} and \textbf{until} which can be seen in the code listing \ref{new-tokens}.
+
+\vspace{3.5pt}
+\begin{lstlisting}[caption= Token for repeat and until added,label=new-tokens,
+style=chstyle,language=C++]
+//=========================================
+enum Token {
+  tok_eof = -1,
+
+  // commands
+  tok_def = -2,
+  tok_extern = -3,
+
+  // primary
+  tok_identifier = -4,
+  tok_number = -5,
+  // newly added tokens for supporting
+  // repeat expression until expression construct
+  tok_repeat = -6,
+  tok_until = -7,
+};
+//============================================
+\end{lstlisting}
+
+
+\section{Modifying Lexer}
+Second modification I have done is on lexer. I have added two new equality comparisons for new tokens repeat and until as can be seen in the code listing \ref{lexer-modification}.
+
+\vspace{2.5pt}
+\begin{lstlisting}[caption= Recognizing new tokens repeat and until,label=lexer-modification,
+style=chstyle,language=C++]
+//=========================================
+static int gettok() {
+  static int LastChar = ' ';
+
+  // Skip any whitespace.
+  while (isspace(LastChar))
+    LastChar = getchar();
+
+  if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+    IdentifierStr = LastChar;
+    while (isalnum((LastChar = getchar())))
+      IdentifierStr += LastChar;
+
+    if (IdentifierStr == "def")
+      return tok_def;
+    if (IdentifierStr == "extern")
+      return tok_extern;
+
+    // modifying lexer to recognize 
+    // repeat and until tokens
+    if (IdentifierStr == "repeat")
+      return tok_repeat; 
+
+    if (IdentifierStr == "until")
+      return tok_until;
+
+    return tok_identifier;
+  }
+
+  if (isdigit(LastChar) || LastChar == '.') { // Number: [0-9.]+
+    std::string NumStr;
+    do {
+      NumStr += LastChar;
+      LastChar = getchar();
+    } while (isdigit(LastChar) || LastChar == '.');
+
+    NumVal = strtod(NumStr.c_str(), nullptr);
+    return tok_number;
+  }
+
+  if (LastChar == '#') {
+    // Comment until end of line.
+    do
+      LastChar = getchar();
+    while (LastChar != EOF && LastChar != '\n' && LastChar != '\r');
+
+    if (LastChar != EOF)
+      return gettok();
+  }
+
+  // Check for end of file.  Don't eat the EOF.
+  if (LastChar == EOF)
+    return tok_eof;
+
+  // Otherwise, just return the character as its ascii value.
+  int ThisChar = LastChar;
+  LastChar = getchar();
+  return ThisChar;
+}
+//============================================
+\end{lstlisting}
+
+   
+\section{Adding New AST Expression for Repeat Until Loop Construct}
+Third modification done was adding a new AST expression which is  \textbf{RepeatUntilExprAST} in order to represent parsed repeat-until construct. Newly added AST expression can be seen as in the code listing \ref{RepeatUntilExprAST}.
+
+\vspace{2.5pt}
+\begin{lstlisting}[caption= Adding RepeatUntilExprAST for representing parsed repeat-until loop construct,label=RepeatUntilExprAST,
+style=chstyle,language=C++]
+//=========================================
+// RepeatUntilExprAST - This class represents a repeat-until looping 
+// construct
+class RepeatUntilExprAST : public ExprAST {
+  std::unique_ptr<ExprAST> Body;
+  std::unique_ptr<ExprAST> Condition;
+
+  public: 
+    RepeatUntilExprAST(std::unique_ptr<ExprAST> Body, std::unique_ptr<ExprAST> Condition) : 
+    Body(std::move(Body)),Condition(std::move(Condition)) {}
+};
+//============================================
+\end{lstlisting}
+
+
+\section{Modifying ParsePrimary Function}
+Fourth modification I have done was to extend the \textbf{ParsePrimary} function to call the \textbf{ParseRepeatExpr} function whenever \textbf{tok\_repeat} token is encountered. Modified ParsePrimary function can be seen in the code listing \ref{modified-ParsePrimary-function}. 
+
+\vspace{2.5pt}
+\begin{lstlisting}[caption=Modifying ParsePrimary function to add parsing support for repeat-until construct, label=modified-ParsePrimary-function,
+style=chstyle,language=C++]
+//=========================================
+/// primary
+///   ::= identifierexpr
+///   ::= numberexpr
+///   ::= parenexpr
+///   ::= repeatexpr
+static std::unique_ptr<ExprAST> ParsePrimary() {
+  switch (CurTok) {
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+    
+  // adding Parsing support for repeat-until construct
+  case tok_repeat: 
+    return ParseRepeatExpr();
+
+  case '(':
+    return ParseParenExpr();
+  default:
+    return LogError("unknown token when expecting an expression");
+  }
+}
+//============================================
+\end{lstlisting}
+
+
+\section{Adding ParseRepeatExpr Function}
+Fifth and final modification I have done was to implement \textbf{ParseRepeatExpr} function. This function is used to correctly parse repeat-until looping expressions. Implementation of ParseRepeatExpr function can be seen as given in the code listing \ref{ParseRepeatExpr-function}.
+
+\vspace{2.5pt}
+\begin{lstlisting}[caption=ParseRepeatExpr function parses the repeat-until loop construct, label=ParseRepeatExpr-function,
+style=chstyle,language=C++]
+//=========================================
+/// repeatexpr ::= repeat expression until expression
+static std::unique_ptr<ExprAST> ParseRepeatExpr() {
+  getNextToken(); // eat the repeat
+  auto Body = ParseExpression();
+
+  if (!Body)
+    return nullptr;
+
+  if (CurTok != tok_until)
+    return LogError("expected 'until' after repeat loop body");  
+
+  getNextToken(); // eat the until
+  auto Condition = ParseExpression();
+
+  if (!Condition) 
+    return nullptr;
+
+
+  fprintf(stderr,"Parsed a repeat-until expr\n");
+  return std::make_unique<RepeatUntilExprAST>(std::move(Body),std::move(Condition));
+}
+//============================================
+\end{lstlisting}
+
+\newpage
+\section*{Some outputs from Execution}
+Some outputs from the execution of the Kaleidoscope can be seen in the figure \ref{execution-outputs}.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{Images/Some_outputs.png}
+    \caption{Some Execution Outputs}
+    \label{execution-outputs}
+\end{figure}
+
+   
+\clearpage
+\hrule 
+\printbibliography[title={References}] % Print the bibliography
+
+\end{document}
