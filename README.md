@@ -18,4 +18,4 @@ Repository for the CENG513 Course that I have taken at IZTECH
 13. Register Allocation
 14. Paper Presentations
 
-Textbooks can be found on: [Course textbooks](/Textbooks/Engineering_a_Compiler.pdf)
+Textbooks can be found on: [Course textbook](/Textbooks/Engineering_a_Compiler.pdf)
