@@ -8,14 +8,14 @@ Repository for the CENG513 Course that I have taken at IZTECH
 3.  Parsing I
 4.  Parsing II
 5.  Kaleidoscope Language 
-6.  Intermediate Representations I
+6.  Intermediate Representations
 7.  Midterm (Take Home)
 8.  Optimizations I
-9.  Optimizations II
-10. LLVM Pass
-11. Instruction Selection I
+9.  Optimizations II (LLVM Pass)
+10. Instruction Selection I
+11. Instruction Selection II
 12. Instruction Scheduling
 13. Register Allocation
 14. Paper Presentations
 
-Textbooks can be found on: [Course textbooks](/Textbooks)
+Textbooks can be found on: [Course textbooks](/Textbooks/Engineering_a_Compiler.pdf)
